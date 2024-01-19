@@ -1,0 +1,11 @@
+version: '3'
+services:
+  ar-db:
+    image: ${AR_DB_IMAGE}
+    container_name: ar-db
+    networks:
+    - default
+    restart: "no"
+    env_file: sandbox-creds.env
+    environment:
+        - PGHOST=postgres

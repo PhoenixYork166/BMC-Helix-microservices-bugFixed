@@ -1,0 +1,106 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:latest
+    command: postgres -c 'max_connections=500'
+    container_name: postgres
+    networks:
+    - default
+    restart: always
+    ports:
+        - "5432:5432"
+    volumes:
+        - ./postgres/data:/var/lib/postgresql/data
+    env_file: sandbox-creds.env
+    environment:
+        - POSTGRES_USER=postgres
+        - PGDATA=/var/lib/postgresql/data:rw
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready"]
+        interval: 15s
+        timeout: 5s
+        retries: 5
+        
+  ars:
+    image: ${ARS_IMAGE}
+    depends_on:
+        postgres:
+            condition: service_healthy
+    container_name: arserver
+    networks:
+      default:
+        aliases:
+          - arserver.sandbox
+    restart: always
+    ports:
+        - "46262:46262"
+        - "8008:8008"
+        - "40001:40001"
+        - "40002:40002"
+        - "61617:61617"
+        - "12444:12444"
+        - "7319:7319"
+        - "9977:9977"
+    volumes:
+        - ./logs/ars/db:/opt/bmc/ARSystem/db
+        - ./logs/ars/db:/opt/bmc/ARSystem/AREmail/Logs
+    env_file: sandbox-creds.env
+    environment:
+        - AR_SERVER_NAME=arserver
+        - AR_SERVER_DB_TYPE=postgres
+        - AR_DB_SERVER_NAME=postgres
+        - AR_DB_NAME=ARSystem
+        - AR_SERVER_PORT=46262
+        - AR_SERVER_DB_PORT=5432
+        - AR_SERVER_DB_CHARACTER_SET=UTF-8
+        - AR_SERVER_DB_USERNAME=ARAdmin
+        - AR_SERVER_RANKING_OPERATION=auto
+        - AR_HOST_SERVICE=sandbox
+        - RSSO_SERVICE_URL=unused
+        - AR_SERVER_USER=Demo
+        - AR_SERVER_ALIAS=arserver
+        - AR_SERVER_DOMAIN=sandbox
+        - ENABLE_REMOTE_DEBUG=true
+        - RSSO_EXTERNAL_URL=unused
+        - DEFAULT_WEB_PATH=http://localhost:8080/arsys
+        - FTS_TYPE=Classic
+        - ENABLE_AR_SERVICES=email_engine,reconciliation,normalization,diserver,slmbrsvc,reporting_plugin,approval_plugin
+        - NO_RSSO=1
+        - ALWAYS_ON=no
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:46100/arapi/liveness"]
+      interval: 1m
+      timeout: 10s
+      retries: 10
+
+  midtier:
+    image: ${MIDTIER_IMAGE}
+    depends_on:
+        ars:
+            condition: service_started
+    container_name: midtier
+    networks:
+    - default
+    restart: always
+    volumes:
+        - ./logs/midtier/arsys:/opt/apache-tomcat/webapps/arsys/logs
+        - ./logs/midtier/tomcat:/opt/apache-tomcat/logs
+    ports:
+        - "8080:8080"
+    env_file: sandbox-creds.env
+    environment:
+        - AR_SERVER_NAME=arserver
+        - AR_SERVER_PORT=46262
+        - MT_CONFIG_PATH=/data1/mount
+        - RSSO_SERVICE_URL=unused
+        - MIDTIER_CLUSTER_NAME=mtcluster
+        - RSSO_EXTERNAL_URL=unused
+        - AR_SERVICE_NAME=arserver
+        - MIDTIER_RSSO_AGENTID=unused
+        - NO_RSSO=1
+        - SCRIPTDEBUG=${SCRIPTDEBUG:-0}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/arsys"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
