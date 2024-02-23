@@ -9,6 +9,7 @@
 ![BMC](https://www.liblogo.com/img-logo/bm6781b14d-bmc-software-logo-bmc-.png)
 ##
 # IGS & BMC are always partners ;)
+## https://www.bmc.com/partners/partner-locator/integrated-global-solutions-limited.html
 ##
 # Welcome anyone in IGS to continue custom dev using docker & K8S to ship BMC Helix ;)
 ##
