@@ -8,6 +8,8 @@
 ##
 ![BMC](https://www.liblogo.com/img-logo/bm6781b14d-bmc-software-logo-bmc-.png)
 ##
+# IGS & BMC are always partners ;)
+##
 # Welcome anyone in IGS to continue custom dev using docker & K8S to ship BMC Helix ;)
 ##
 ## 2. Debugging Dead-end bugs in Frontend Angular will be so FUN :D
