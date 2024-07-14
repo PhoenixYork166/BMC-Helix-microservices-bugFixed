@@ -1,4 +1,3 @@
-# 搵工用
 ## Intro:
 ## Cloud Software as a Service
 ## BMC Helix microservices
